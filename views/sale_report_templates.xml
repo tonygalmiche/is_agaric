@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="is_report_saleorder_document" name="is_report_saleorder_document" inherit_id="sale.report_saleorder_document">
+        <t t-set="address" position="replace">
+            <table style="width:100%">
+                <tr style="vertical-align:top">
+                    <td style="width:45mm;vertical-align:top">
+                        <div
+                            t-field="res_company.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'
+                            style="border-bottom: 3px solid #772953;vertical-align:top"
+                        />
+                    </td>
+                    <td style="width:75mm">
+                    </td>
+                    <td>
+                        <div style="height:30mm"/>
+                        <div 
+                            t-field="doc.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'
+                        />
+                        <p t-if="doc.partner_id.vat"><t t-esc="doc.company_id.country_id.vat_label or 'Tax ID'"/>: <span t-field="doc.partner_id.vat"/></p>
+                    </td>
+                </tr>
+            </table>
+        </t>
+        <div id="informations" position="replace">
+            <div class="row mt32 mb32" id="informations">
+                <div t-if="doc.date_order" class="col-auto mw-100 mb-2">
+                    <strong>Date du devis:</strong>
+                    <p class="m-0" t-field="doc.date_order" t-options='{"widget": "date"}'/>
+                </div>
+                <div t-if="doc.user_id.name" class="col-auto mw-100 mb-2">
+                    <strong>Contact:</strong>
+                    <p class="m-0" t-field="doc.user_id"/>
+                </div>
+            </div>
+        </div>
+        <th name="th_taxes" position="replace"/>
+        <td name="td_taxes" position="replace"/>
+    </template>
+</odoo>

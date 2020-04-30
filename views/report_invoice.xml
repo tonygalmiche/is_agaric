@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="is_report_invoice_document" name="is_report_invoice_document" inherit_id="account.report_invoice_document">
+        <t t-set="address" position="replace">
+            <style>
+                .page{
+                    font-size:10pt;
+                }
+                h2{
+                    font-size:16pt;
+                    background-color:#c8c8c8;
+                }
+                .o_main_table table,td,th{
+                    border: 1px solid black;
+                }
+                .table th{
+                    border-top: 1px solid black;
+                }
+                .table-sm > thead > tr > th {
+                    border-bottom: 1px solid black !important;
+                }
+                .table th, .table td {
+                    padding: 0.3em;
+                }
+                .table thead th {
+                    vertical-align: middle;
+                }
+            </style>
+            <table style="width:100%;border:none">
+                <tr style="vertical-align:top">
+                    <td style="width:75mm;vertical-align:top;font-size:10pt;border:none">
+                        <b><div t-field="res_company.name"/></b>
+                        <div t-field="res_company.street"/>
+                        <div><span t-field="res_company.zip"/> <span t-field="res_company.city"/></div>
+                        <div>Tél.: <span t-field="res_company.phone"/></div>
+                        <div>Courriel: <span t-field="res_company.email"/></div>
+                        <br />
+                        <div t-field="res_company.is_capital"/>
+                        <div>N°Siren: <span t-field="res_company.siret"/> <span t-field="res_company.company_registry"/></div>
+                        <div>N°TVA intracommunautaire: <br /><span t-field="res_company.vat"/></div>
+                    </td>
+                    <td style="width:45mm;border:none">
+                    </td>
+                    <td style="border:none">
+                        <div style="height:30mm"/>
+                        <address 
+                            t-field="o.partner_id"
+                            t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'
+                        />
+                        <p t-if="o.partner_id.vat"><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/>: <span t-field="o.partner_id.vat"/></p>
+                    </td>
+                </tr>
+            </table>
+            <br />
+        </t>
+
+
+        <div name="due_date" position="replace"/>
+
+        <div name="origin" position="replace">
+            <div class="col-auto mw-100 mb-2" t-if="o.invoice_origin" name="origin">
+                <strong>D'après le devis : </strong>
+                <p class="m-0" t-field="o.invoice_origin"/>
+            </div>
+        </div>
+
+        <th name="th_description" position="replace">
+            <th name="th_description" class="text-left"><span>Désignation</span></th>
+        </th>
+        <th name="th_priceunit" position="replace">
+            <th name="th_priceunit" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>Prix unitaire H.T.</span></th>
+        </th>
+        <th name="th_taxes" position="replace">
+            <th name="th_taxes" t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>Taux TVA</span></th>
+        </th>
+        <th name="th_subtotal" position="replace">
+            <th name="th_subtotal" class="text-right">
+                <span groups="account.group_show_line_subtotals_tax_excluded">Montant H.T.</span>
+                <span groups="account.group_show_line_subtotals_tax_included">Montant</span>
+            </th>
+        </th>
+
+
+        <div id="total" position="replace">
+            <div id="total" class="row">
+                <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                    <table class="table table-sm;page-break-inside: avoid;">
+                        <tr class="border-black o_subtotal" style="">
+                            <td><strong>Total H.T.</strong></td>
+                            <td class="text-right">
+                                <span t-field="o.amount_untaxed"/>
+                            </td>
+                        </tr>
+                        <t t-foreach="o.amount_by_group" t-as="amount_by_group">
+                            <tr style="">
+                                <t t-if="len(o.line_ids.filtered(lambda line: line.tax_line_id)) == 1 and o.amount_untaxed == amount_by_group[2]">
+                                    <td><span t-esc="amount_by_group[0]"/></td>
+                                    <td class="text-right o_price_total">
+                                        <span t-esc="amount_by_group[3]" />
+                                    </td>
+                                </t>
+                                <t t-else="">
+                                    <td>
+                                        <span t-esc="amount_by_group[0]"/>
+                                        <span>&amp;nbsp;<span>on</span>
+                                            <t t-esc="amount_by_group[4]"/>
+                                        </span>
+                                    </td>
+                                    <td class="text-right o_price_total">
+                                        <span t-esc="amount_by_group[3]"/>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                        <tr class="border-black o_total">
+                            <td><strong>Total TTC</strong></td>
+                            <td class="text-right">
+                                <span t-field="o.amount_total"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+        <p name="payment_term" position="replace">
+            <p t-if="o.invoice_payment_term_id" name="payment_term">
+                <div t-field="o.invoice_payment_term_id.note"/>
+                <div><b>A régler au plus tard le : <span t-field="o.invoice_date_due"/></b></div>
+            </p>
+            <t t-if="res_company.is_retard_paiement">
+                <div t-field="res_company.is_retard_paiement"/>
+            </t>
+            <t t-if="res_company.is_condition_escompte">
+                <div><b>Conditions d'escompte : </b><span t-field="res_company.is_condition_escompte"/></div>
+            </t>
+            <t t-if="res_company.is_modalite_reglement">
+                <div><b>Modalité de règlement : </b><span t-field="res_company.is_modalite_reglement"/></div>
+            </t>
+
+            <t t-if="res_company.partner_id.bank_ids">
+                <br />
+                <b>Nos coordonnées bancaires : </b><br />
+                <div>IBAN : <span t-field="res_company.partner_id.bank_ids[0].acc_number"/></div>
+                <div>BIC : <span t-field="res_company.partner_id.bank_ids[0].bank_id.name"/></div>
+            </t>
+
+        </p>
+
+
+        <xpath expr="//div[hasclass('page')]/p[1]" position="replace"/>
+    </template>
+</odoo>
